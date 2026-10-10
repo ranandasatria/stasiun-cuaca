@@ -28,3 +28,32 @@ enum QualityFlag {
   COUNTER_RESET
 }
 
+model Location {
+  id        Int     @id @default(autoincrement())
+  name      String
+  latitude  Float
+  longitude Float
+  altitude  Float
+
+  @@map("locations")
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  username     String @unique
+  passwordHash String @map("password_hash")
+  role         String @default("admin")
+
+  @@map("users")
+}
+
+model SensorType {
+  code        String @id
+  displayName String @map("display_name")
+  unit        String
+  minValid    Float  @map("min_valid")
+  maxValid    Float  @map("max_valid")
+  precision   Int
+
+  @@map("sensor_types")
+}
