@@ -1,0 +1,114 @@
+erDiagram
+    LOCATION ||--o{ DEVICE : "one location has many devices"
+    DEVICE ||--o{ DEVICE_STATUS_HISTORY : "one device has many status records"
+    DEVICE ||--o{ SENSOR_INSTALLATION : "one device has many sensor installations"
+    DEVICE ||--o{ SENSOR_READING : "one device has many readings"
+    DEVICE ||--o{ READING_AGGREGATE : "one device has many aggregates"
+    DEVICE ||--o{ DEVICE_HEARTBEAT : "one device has many heartbeats"
+    SENSOR_TYPE ||--o{ SENSOR : "one type has many physical sensors"
+    SENSOR ||--o{ SENSOR_INSTALLATION : "one sensor has many installation records"
+    SENSOR ||--o{ SENSOR_CALIBRATION : "one sensor has many calibrations"
+    SENSOR ||--o{ SENSOR_READING : "one sensor has many readings"
+
+    LOCATION {
+        int id PK
+        string name
+        float latitude
+        float longitude
+        float altitude
+    }
+
+    USER {
+        int id PK
+        string username UK
+        string password_hash
+        string role
+    }
+
+    DEVICE {
+        string id PK "e.g. WS-GRT-001"
+        string name
+        int location_id FK
+        string status "PROVISIONED, ACTIVE, MAINTENANCE, DECOMMISSIONED"
+        string api_key_hash
+        string api_key_prefix
+        datetime last_seen_at "indexed for health query"
+        float last_battery_v
+        int last_rssi
+        string last_fw_version
+        datetime deleted_at "nullable, soft delete"
+    }    
+
+    DEVICE_STATUS_HISTORY {
+        int id PK
+        string device_id FK
+        string from_status
+        string to_status
+        string reason
+        datetime created_at
+    }
+
+    SENSOR_TYPE {
+        string code PK "temp_air, humidity, pressure, wind_speed, wind_dir, rain_counter, solar_rad"
+        string display_name
+        string unit
+        float min_valid
+        float max_valid
+        int precision
+    }
+
+    SENSOR {
+        int id PK
+        string serial_number UK
+        string type_code FK
+    }
+
+    SENSOR_INSTALLATION {
+        int id PK
+        int sensor_id FK
+        string device_id FK
+        datetime installed_at
+        datetime removed_at "nullable, NULL means still installed"
+    }
+
+    SENSOR_CALIBRATION {
+        int id PK
+        int sensor_id FK
+        datetime effective_from
+        float offset "default 0"
+        float scale "default 1"
+        string reason
+    }
+
+    SENSOR_READING {
+        bigint id PK
+        string device_id FK "composite index 1"
+        int sensor_id FK "composite index 2"
+        string sensor_type "part of unique key for dedup"
+        datetime ts "UTC, unique with device_id and sensor_type"
+        float raw
+        float corrected "nullable, calibrated value"
+        string flag "GOOD, OUT_OF_RANGE, SENSOR_ERROR, FUTURE_TS, STUCK, COUNTER_RESET"
+    }
+
+    READING_AGGREGATE {
+        int id PK
+        string device_id FK
+        string sensor_type
+        datetime bucket_hour "unique per device, type and hour"
+        float avg
+        float min
+        float max
+        float sum
+        int count
+    }
+
+    DEVICE_HEARTBEAT {
+        int id PK
+        string device_id FK
+        datetime ts
+        float battery_v
+        int rssi
+        string fw_version
+        int uptime_s "nullable"
+    }
