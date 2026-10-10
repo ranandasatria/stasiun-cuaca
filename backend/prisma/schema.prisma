@@ -11,3 +11,20 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum DeviceStatus {
+  PROVISIONED
+  ACTIVE
+  MAINTENANCE
+  DECOMMISSIONED
+}
+
+enum QualityFlag {
+  GOOD
+  OUT_OF_RANGE
+  SENSOR_ERROR
+  FUTURE_TS
+  STUCK
+  COUNTER_RESET
+}
+
