@@ -29,11 +29,12 @@ enum QualityFlag {
 }
 
 model Location {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   latitude  Float
   longitude Float
   altitude  Float
+  devices   Device[]
 
   @@map("locations")
 }
@@ -56,4 +57,37 @@ model SensorType {
   precision   Int
 
   @@map("sensor_types")
+}
+
+model Device {
+  id            String       @id
+  name          String
+  locationId    Int          @map("location_id")
+  status        DeviceStatus @default(PROVISIONED)
+  apiKeyHash    String       @map("api_key_hash")
+  apiKeyPrefix  String       @map("api_key_prefix")
+  lastSeenAt    DateTime?    @map("last_seen_at")
+  lastBatteryV  Float?       @map("last_battery_v")
+  lastRssi      Int?         @map("last_rssi")
+  lastFwVersion String?      @map("last_fw_version")
+  deletedAt     DateTime?    @map("deleted_at")
+
+  location      Location              @relation(fields: [locationId], references: [id])
+  statusHistory DeviceStatusHistory[]
+
+  @@index([lastSeenAt])
+  @@map("devices")
+}
+
+model DeviceStatusHistory {
+  id         Int          @id @default(autoincrement())
+  deviceId   String       @map("device_id")
+  fromStatus DeviceStatus @map("from_status")
+  toStatus   DeviceStatus @map("to_status")
+  reason     String?
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  device     Device       @relation(fields: [deviceId], references: [id])
+
+  @@map("device_status_histories")
 }
