@@ -55,6 +55,7 @@ model SensorType {
   minValid    Float  @map("min_valid")
   maxValid    Float  @map("max_valid")
   precision   Int
+  sensors     Sensor[]
 
   @@map("sensor_types")
 }
@@ -74,6 +75,10 @@ model Device {
 
   location      Location              @relation(fields: [locationId], references: [id])
   statusHistory DeviceStatusHistory[]
+  installations SensorInstallation[]
+  readings      SensorReading[]
+  aggregates    ReadingAggregate[]
+  heartbeats    DeviceHeartbeat[]
 
   @@index([lastSeenAt])
   @@map("devices")
@@ -90,4 +95,93 @@ model DeviceStatusHistory {
   device     Device       @relation(fields: [deviceId], references: [id])
 
   @@map("device_status_histories")
+}
+
+model Sensor {
+  id           Int     @id @default(autoincrement())
+  serialNumber String  @unique @map("serial_number")
+  typeCode     String  @map("type_code")
+
+  type         SensorType           @relation(fields: [typeCode], references: [code])
+  installations SensorInstallation[]
+  calibrations SensorCalibration[]
+  readings     SensorReading[]
+
+  @@map("sensors")
+}
+
+model SensorInstallation {
+  id          Int       @id @default(autoincrement())
+  sensorId    Int       @map("sensor_id")
+  deviceId    String    @map("device_id")
+  installedAt DateTime  @map("installed_at")
+  removedAt   DateTime? @map("removed_at")
+
+  sensor      Sensor    @relation(fields: [sensorId], references: [id])
+  device      Device    @relation(fields: [deviceId], references: [id])
+
+  @@map("sensor_installations")
+}
+
+model SensorCalibration {
+  id            Int      @id @default(autoincrement())
+  sensorId      Int      @map("sensor_id")
+  effectiveFrom DateTime @map("effective_from")
+  offset        Float    @default(0)
+  scale         Float    @default(1)
+  reason        String?
+
+  sensor        Sensor   @relation(fields: [sensorId], references: [id])
+
+  @@map("sensor_calibrations")
+}
+
+model SensorReading {
+  id         BigInt      @id @default(autoincrement())
+  deviceId   String      @map("device_id")
+  sensorId   Int         @map("sensor_id")
+  sensorType String      @map("sensor_type")
+  ts         DateTime
+  raw        Float
+  corrected  Float?
+  flag       QualityFlag @default(GOOD)
+
+  device     Device      @relation(fields: [deviceId], references: [id])
+  sensor     Sensor      @relation(fields: [sensorId], references: [id])
+
+  @@unique([deviceId, ts, sensorType])
+  @@index([deviceId, ts(sort: Desc)])
+  @@index([sensorId, ts(sort: Desc)])
+  @@map("sensor_readings")
+}
+
+model ReadingAggregate {
+  id         Int      @id @default(autoincrement())
+  deviceId   String   @map("device_id")
+  sensorType String   @map("sensor_type")
+  bucketHour DateTime @map("bucket_hour")
+  avg        Float
+  min        Float
+  max        Float
+  sum        Float
+  count      Int
+
+  device     Device   @relation(fields: [deviceId], references: [id])
+
+  @@unique([deviceId, sensorType, bucketHour])
+  @@map("reading_aggregates")
+}
+
+model DeviceHeartbeat {
+  id        Int      @id @default(autoincrement())
+  deviceId  String   @map("device_id")
+  ts        DateTime
+  batteryV  Float    @map("battery_v")
+  rssi      Int
+  fwVersion String   @map("fw_version")
+  uptimeS   Int?     @map("uptime_s")
+
+  device    Device   @relation(fields: [deviceId], references: [id])
+
+  @@map("device_heartbeats")
 }
