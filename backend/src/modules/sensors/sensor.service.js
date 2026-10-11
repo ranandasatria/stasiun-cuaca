@@ -107,3 +107,35 @@ export async function detachSensor(deviceId, sensorId, removedAt) {
     data: { removedAt: removedAt ? new Date(removedAt) : new Date() },
   });
 }
+
+export async function addCalibration(sensorId, { effectiveFrom, offset = 0, scale = 1, reason }) {
+  await getSensor(sensorId);
+
+  return prisma.sensorCalibration.create({
+    data: {
+      sensorId,
+      effectiveFrom: new Date(effectiveFrom),
+      offset,
+      scale,
+      reason,
+    },
+  });
+}
+
+export async function listCalibrations(sensorId) {
+  await getSensor(sensorId);
+
+  return prisma.sensorCalibration.findMany({
+    where: { sensorId },
+    orderBy: { effectiveFrom: 'desc' },
+  });
+}
+
+export async function getActiveCalibration(sensorId, ts) {
+  const calibration = await prisma.sensorCalibration.findFirst({
+    where: { sensorId, effectiveFrom: { lte: ts } },
+    orderBy: { effectiveFrom: 'desc' },
+  });
+
+  return calibration || { offset: 0, scale: 1 };
+}

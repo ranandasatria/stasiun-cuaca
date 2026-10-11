@@ -5,6 +5,8 @@ import {
   postSensor,
   patchSensor,
   deleteSensorById,
+  postCalibration,
+  getCalibrations,
 } from './sensor.controller.js';
 import { requireAuth } from '../../middleware/requireAuth.js';
 
@@ -115,5 +117,56 @@ router.patch('/:id', patchSensor);
  *       409: { description: Sensor has installation history }
  */
 router.delete('/:id', deleteSensorById);
+
+/**
+ * @openapi
+ * /api/v1/sensors/{id}/calibrations:
+ *   post:
+ *     tags: [Sensors]
+ *     summary: Add a calibration (offset/scale) effective from a date
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [effectiveFrom]
+ *             properties:
+ *               effectiveFrom: { type: string, format: date-time }
+ *               offset: { type: number, example: 0.5 }
+ *               scale: { type: number, example: 1.0 }
+ *               reason: { type: string }
+ *     responses:
+ *       201: { description: Created }
+ *       404: { description: Sensor not found }
+ *       422: { description: Validation error }
+ */
+router.post('/:id/calibrations', postCalibration);
+
+/**
+ * @openapi
+ * /api/v1/sensors/{id}/calibrations:
+ *   get:
+ *     tags: [Sensors]
+ *     summary: List calibration history of a sensor
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200: { description: OK }
+ *       404: { description: Sensor not found }
+ */
+router.get('/:id/calibrations', getCalibrations);
 
 export default router;

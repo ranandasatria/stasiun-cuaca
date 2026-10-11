@@ -8,6 +8,8 @@ import {
   deleteSensor,
   attachSensor,
   detachSensor,
+  addCalibration,
+  listCalibrations,
 } from './sensor.service.js';
 import { httpError } from '../../utils/httpError.js';
 
@@ -71,5 +73,21 @@ export async function postInstallation(req, res) {
 
 export async function deleteInstallation(req, res) {
   const data = await detachSensor(req.params.id, Number(req.params.sensorId));
+  res.json({ data, request_id: req.id });
+}
+
+export async function postCalibration(req, res) {
+  const { effectiveFrom, offset, scale, reason } = req.body;
+
+  if (!effectiveFrom) {
+    throw httpError(422, 'VALIDATION_ERROR', 'effectiveFrom is required');
+  }
+
+  const data = await addCalibration(Number(req.params.id), { effectiveFrom, offset, scale, reason });
+  res.status(201).json({ data, request_id: req.id });
+}
+
+export async function getCalibrations(req, res) {
+  const data = await listCalibrations(Number(req.params.id));
   res.json({ data, request_id: req.id });
 }
