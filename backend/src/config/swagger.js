@@ -18,6 +18,11 @@ const options = {
           scheme: 'bearer',
           bearerFormat: 'JWT',
         },
+        deviceKey: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-Device-Key',
+        },
       },
     },
     tags: [
