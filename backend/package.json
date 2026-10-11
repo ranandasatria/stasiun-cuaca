@@ -2,19 +2,16 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@prisma/client": "7.10.0",
     "bcryptjs": "^3.0.3",
@@ -26,6 +23,7 @@
   "devDependencies": {
     "@types/node": "^26.6.5",
     "nodemon": "^3.1.14",
-    "prisma": "7.10.0"
+    "prisma": "7.10.0",
+    "vitest": "^4.1.11"
   }
 }

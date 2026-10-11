@@ -1,0 +1,24 @@
+import express from 'express';
+import { requestId } from './middleware/requestId.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+const app = express();
+
+app.use(express.json());
+app.use(requestId);
+
+app.get('/healthz', (req, res) => {
+  res.json({ status: 'ok', request_id: req.id });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    code: 'NOT_FOUND',
+    message: 'Route not found',
+    request_id: req.id,
+  });
+});
+
+app.use(errorHandler);
+
+export default app;
