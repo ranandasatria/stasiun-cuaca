@@ -13,6 +13,7 @@ const options = {
     ],
     tags: [
       { name: 'Health', description: 'Service health' },
+      { name: 'Locations', description: 'Location master data' },
       { name: 'Devices', description: 'Device management' },
       { name: 'Sensors', description: 'Sensor management' },
       { name: 'Ingestion', description: 'Telemetry ingestion from devices' },
@@ -31,7 +32,7 @@ const options = {
       },
     },
   },
-  apis: ['./src/routes/*.js'],
+  apis: ['./src/modules/**/*.routes.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
