@@ -6,6 +6,7 @@ import {
   patchDevice,
   postRotateCredential,
   deleteDevice,
+  getHealth,
 } from './device.controller.js';
 import { requireAuth } from '../../middleware/requireAuth.js';
 
@@ -87,6 +88,25 @@ router.get('/', getDevices);
  *       404: { description: Not found }
  */
 router.get('/:id', getDeviceById);
+
+/**
+ * @openapi
+ * /api/v1/devices/{id}/health:
+ *   get:
+ *     tags: [Devices]
+ *     summary: Device health (online if seen within 15 minutes)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: OK }
+ *       404: { description: Not found }
+ */
+router.get('/:id/health', getHealth);
 
 /**
  * @openapi

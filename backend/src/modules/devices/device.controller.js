@@ -6,6 +6,7 @@ import {
   changeStatus,
   rotateCredential,
   softDeleteDevice,
+  getDeviceHealth,
 } from './device.service.js';
 import { httpError } from '../../utils/httpError.js';
 
@@ -59,4 +60,9 @@ export async function postRotateCredential(req, res) {
 export async function deleteDevice(req, res) {
   await softDeleteDevice(req.params.id);
   res.status(204).send();
+}
+
+export async function getHealth(req, res) {
+  const health = await getDeviceHealth(req.params.id);
+  res.json({ data: health, request_id: req.id });
 }

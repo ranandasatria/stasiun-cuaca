@@ -133,3 +133,26 @@ export async function softDeleteDevice(id) {
   await getDevice(id);
   await prisma.device.update({ where: { id }, data: { deletedAt: new Date() } });
 }
+
+export async function getDeviceHealth(id) {
+  const device = await prisma.device.findFirst({ where: { id, deletedAt: null } });
+  if (!device) {
+    throw httpError(404, 'DEVICE_NOT_FOUND', 'Device not found');
+  }
+
+  const now = Date.now();
+  const lastSeenMs = device.lastSeenAt ? new Date(device.lastSeenAt).getTime() : null;
+  const minutesSinceLastSeen = lastSeenMs === null ? null : Math.floor((now - lastSeenMs) / 60000);
+  const online = minutesSinceLastSeen !== null && minutesSinceLastSeen <= 15;
+
+  return {
+    deviceId: device.id,
+    status: device.status,
+    online,
+    lastSeenAt: device.lastSeenAt,
+    minutesSinceLastSeen,
+    lastBatteryV: device.lastBatteryV,
+    lastRssi: device.lastRssi,
+    lastFwVersion: device.lastFwVersion,
+  };
+}
