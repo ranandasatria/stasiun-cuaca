@@ -11,6 +11,15 @@ const options = {
     servers: [
       { url: 'http://localhost:3001', description: 'Local development' },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
     tags: [
       { name: 'Health', description: 'Service health' },
       { name: 'Auth', description: 'User authentication' },

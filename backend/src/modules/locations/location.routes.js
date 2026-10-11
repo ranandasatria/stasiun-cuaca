@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { postLocation, getLocations } from './location.controller.js';
+import { requireAuth } from '../../middleware/requireAuth.js';
 
 const router = Router();
+
+router.use(requireAuth);
 
 /**
  * @openapi
@@ -9,6 +12,8 @@ const router = Router();
  *   post:
  *     tags: [Locations]
  *     summary: Create a location
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -23,6 +28,7 @@ const router = Router();
  *               altitude: { type: number }
  *     responses:
  *       201: { description: Created }
+ *       401: { description: Unauthorized }
  *       422: { description: Validation error }
  */
 router.post('/', postLocation);
@@ -33,6 +39,8 @@ router.post('/', postLocation);
  *   get:
  *     tags: [Locations]
  *     summary: List locations (offset pagination)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -42,6 +50,7 @@ router.post('/', postLocation);
  *         schema: { type: integer }
  *     responses:
  *       200: { description: OK }
+ *       401: { description: Unauthorized }
  */
 router.get('/', getLocations);
 
