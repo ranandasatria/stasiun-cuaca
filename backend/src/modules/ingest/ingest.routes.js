@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { postHeartbeat, postTelemetry, postTelemetryBatch } from './ingest.controller.js';
 import { deviceAuth } from '../../middleware/deviceAuth.js';
+import { ingestLimiter, batchLimiter } from '../../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ const router = Router();
  *       401: { description: Unauthorized }
  *       403: { description: Device not active }
  */
-router.post('/heartbeat', deviceAuth, postHeartbeat);
+router.post('/heartbeat', deviceAuth, ingestLimiter, postHeartbeat);
 
 /**
  * @openapi
@@ -68,7 +69,7 @@ router.post('/heartbeat', deviceAuth, postHeartbeat);
  *       403: { description: Device not active or device_id mismatch }
  *       422: { description: Validation error }
  */
-router.post('/telemetry', deviceAuth, postTelemetry);
+router.post('/telemetry', deviceAuth, ingestLimiter, postTelemetry);
 
 /**
  * @openapi
@@ -110,6 +111,6 @@ router.post('/telemetry', deviceAuth, postTelemetry);
  *       403: { description: Device not active or device_id mismatch }
  *       413: { description: Batch exceeds 500 records }
  */
-router.post('/telemetry/batch', deviceAuth, postTelemetryBatch);
+router.post('/telemetry/batch', deviceAuth, batchLimiter, postTelemetryBatch);
 
 export default router;
