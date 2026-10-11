@@ -3,6 +3,8 @@ import {
   listDevices,
   getDevice,
   updateDevice,
+  changeStatus,
+  rotateCredential,
   softDeleteDevice,
 } from './device.service.js';
 import { httpError } from '../../utils/httpError.js';
@@ -38,8 +40,20 @@ export async function getDeviceById(req, res) {
 }
 
 export async function patchDevice(req, res) {
-  const device = await updateDevice(req.params.id, req.body);
+  const { status, reason, name, locationId } = req.body;
+
+  if (status !== undefined) {
+    const device = await changeStatus(req.params.id, status, reason);
+    return res.json({ data: device, request_id: req.id });
+  }
+
+  const device = await updateDevice(req.params.id, { name, locationId });
   res.json({ data: device, request_id: req.id });
+}
+
+export async function postRotateCredential(req, res) {
+  const result = await rotateCredential(req.params.id);
+  res.json({ data: result, request_id: req.id });
 }
 
 export async function deleteDevice(req, res) {

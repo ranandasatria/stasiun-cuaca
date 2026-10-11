@@ -3,9 +3,27 @@ import bcrypt from 'bcryptjs';
 import prisma from '../../lib/prisma.js';
 import { httpError } from '../../utils/httpError.js';
 
+const VALID_STATUSES = ['PROVISIONED', 'ACTIVE', 'MAINTENANCE', 'DECOMMISSIONED'];
+
+const TRANSITIONS = {
+  PROVISIONED: ['ACTIVE', 'DECOMMISSIONED'],
+  ACTIVE: ['MAINTENANCE', 'DECOMMISSIONED'],
+  MAINTENANCE: ['ACTIVE', 'DECOMMISSIONED'],
+  DECOMMISSIONED: [],
+};
+
 function toPublicDevice(device) {
   const { apiKeyHash, ...rest } = device;
   return rest;
+}
+
+async function generateApiKey() {
+  const secret = randomBytes(24).toString('hex');
+  return {
+    secret,
+    prefix: secret.slice(0, 8),
+    hash: await bcrypt.hash(secret, 10),
+  };
 }
 
 export async function registerDevice({ id, name, locationId }) {
@@ -19,9 +37,7 @@ export async function registerDevice({ id, name, locationId }) {
     throw httpError(409, 'DEVICE_EXISTS', 'Device id already exists');
   }
 
-  const secret = randomBytes(24).toString('hex');
-  const apiKeyPrefix = secret.slice(0, 8);
-  const apiKeyHash = await bcrypt.hash(secret, 10);
+  const key = await generateApiKey();
 
   const device = await prisma.device.create({
     data: {
@@ -29,12 +45,12 @@ export async function registerDevice({ id, name, locationId }) {
       name,
       locationId,
       status: 'PROVISIONED',
-      apiKeyPrefix,
-      apiKeyHash,
+      apiKeyPrefix: key.prefix,
+      apiKeyHash: key.hash,
     },
   });
 
-  return { device: toPublicDevice(device), apiKey: secret };
+  return { device: toPublicDevice(device), apiKey: key.secret };
 }
 
 export async function listDevices({ status, locationId, q, page = 1, limit = 20 }) {
@@ -76,6 +92,41 @@ export async function updateDevice(id, { name, locationId }) {
 
   const device = await prisma.device.update({ where: { id }, data });
   return toPublicDevice(device);
+}
+
+export async function changeStatus(id, toStatus, reason) {
+  const device = await getDevice(id);
+
+  if (!VALID_STATUSES.includes(toStatus)) {
+    throw httpError(422, 'VALIDATION_ERROR', `status must be one of: ${VALID_STATUSES.join(', ')}`);
+  }
+
+  const fromStatus = device.status;
+  const allowed = TRANSITIONS[fromStatus] || [];
+  if (!allowed.includes(toStatus)) {
+    throw httpError(422, 'INVALID_TRANSITION', `Cannot change status from ${fromStatus} to ${toStatus}`);
+  }
+
+  const [updated] = await prisma.$transaction([
+    prisma.device.update({ where: { id }, data: { status: toStatus } }),
+    prisma.deviceStatusHistory.create({
+      data: { deviceId: id, fromStatus, toStatus, reason },
+    }),
+  ]);
+
+  return toPublicDevice(updated);
+}
+
+export async function rotateCredential(id) {
+  await getDevice(id);
+
+  const key = await generateApiKey();
+  const device = await prisma.device.update({
+    where: { id },
+    data: { apiKeyPrefix: key.prefix, apiKeyHash: key.hash },
+  });
+
+  return { device: toPublicDevice(device), apiKey: key.secret };
 }
 
 export async function softDeleteDevice(id) {

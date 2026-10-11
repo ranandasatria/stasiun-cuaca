@@ -4,6 +4,7 @@ import {
   getDevices,
   getDeviceById,
   patchDevice,
+  postRotateCredential,
   deleteDevice,
 } from './device.controller.js';
 import { requireAuth } from '../../middleware/requireAuth.js';
@@ -92,7 +93,8 @@ router.get('/:id', getDeviceById);
  * /api/v1/devices/{id}:
  *   patch:
  *     tags: [Devices]
- *     summary: Update device name or location
+ *     summary: Update device fields, or change status (controlled transition)
+ *     description: Send `status` to change lifecycle state (writes history), or `name`/`locationId` to update fields.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -108,11 +110,33 @@ router.get('/:id', getDeviceById);
  *             properties:
  *               name: { type: string }
  *               locationId: { type: integer }
+ *               status: { type: string, enum: [PROVISIONED, ACTIVE, MAINTENANCE, DECOMMISSIONED] }
+ *               reason: { type: string }
  *     responses:
  *       200: { description: OK }
  *       404: { description: Not found }
+ *       422: { description: Invalid transition or validation error }
  */
 router.patch('/:id', patchDevice);
+
+/**
+ * @openapi
+ * /api/v1/devices/{id}/credentials/rotate:
+ *   post:
+ *     tags: [Devices]
+ *     summary: Rotate device API key (returns the new key once)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: OK, returns new apiKey }
+ *       404: { description: Not found }
+ */
+router.post('/:id/credentials/rotate', postRotateCredential);
 
 /**
  * @openapi
