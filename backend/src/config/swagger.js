@@ -13,6 +13,7 @@ const options = {
     ],
     tags: [
       { name: 'Health', description: 'Service health' },
+      { name: 'Auth', description: 'User authentication' },
       { name: 'Locations', description: 'Location master data' },
       { name: 'Devices', description: 'Device management' },
       { name: 'Sensors', description: 'Sensor management' },
