@@ -5,6 +5,7 @@ import { qualityFlag } from '../../utils/qualityFlag.js';
 import { dedupReadings } from '../../utils/dedup.js';
 import { applyCalibration } from '../../utils/calibration.js';
 import { getActiveCalibration } from '../sensors/sensor.service.js';
+import { rollupRange } from '../aggregate/aggregate.service.js';
 
 export async function recordHeartbeat(device, { ts, fw, battery_v, rssi, uptime_s }) {
   const deviceTs = new Date(ts * 1000);
@@ -157,6 +158,16 @@ export async function ingestBatch(device, payload) {
       lastFwVersion: payload.fw,
     },
   });
+
+  const timestamps = payload.batch
+    .map((item) => item.ts)
+    .filter((t) => typeof t === 'number');
+
+  if (timestamps.length > 0) {
+    const minTs = new Date(Math.min(...timestamps) * 1000);
+    const maxTs = new Date(Math.max(...timestamps) * 1000 + 1000);
+    await rollupRange(device.id, minTs, maxTs);
+  }
 
   return result;
 }
