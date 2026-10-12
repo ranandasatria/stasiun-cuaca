@@ -1,10 +1,28 @@
 import { Router } from 'express';
-import { postInstallation, deleteInstallation } from './sensor.controller.js';
+import { postInstallation, deleteInstallation, getDeviceSensors } from './sensor.controller.js';
 import { requireAuth } from '../../middleware/requireAuth.js';
 
 const router = Router();
 
 router.use(requireAuth);
+
+/**
+ * @openapi
+ * /api/v1/devices/{id}/sensors:
+ *   get:
+ *     tags: [Sensors]
+ *     summary: List sensors currently installed on a device
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: OK }
+ */
+router.get('/:id/sensors', getDeviceSensors);
 
 /**
  * @openapi

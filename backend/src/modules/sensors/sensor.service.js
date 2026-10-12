@@ -139,3 +139,11 @@ export async function getActiveCalibration(sensorId, ts) {
 
   return calibration || { offset: 0, scale: 1 };
 }
+
+export async function listDeviceSensors(deviceId) {
+  return prisma.sensorInstallation.findMany({
+    where: { deviceId, removedAt: null },
+    include: { sensor: { include: { type: true } } },
+    orderBy: { installedAt: 'asc' },
+  });
+}

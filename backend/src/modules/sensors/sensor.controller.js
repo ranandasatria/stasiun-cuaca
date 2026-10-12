@@ -10,6 +10,7 @@ import {
   detachSensor,
   addCalibration,
   listCalibrations,
+  listDeviceSensors,
 } from './sensor.service.js';
 import { httpError } from '../../utils/httpError.js';
 
@@ -89,5 +90,10 @@ export async function postCalibration(req, res) {
 
 export async function getCalibrations(req, res) {
   const data = await listCalibrations(Number(req.params.id));
+  res.json({ data, request_id: req.id });
+}
+
+export async function getDeviceSensors(req, res) {
+  const data = await listDeviceSensors(req.params.id);
   res.json({ data, request_id: req.id });
 }
