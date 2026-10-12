@@ -63,6 +63,7 @@ export const api = {
   sensorTypes: () => request('/sensor-types'),
   sensors: () => request('/sensors'),
   createSensor: (body) => request('/sensors', { method: 'POST', body }),
+  deviceSensors: (deviceId) => request(`/devices/${deviceId}/sensors`),
   installSensor: (deviceId, body) => request(`/devices/${deviceId}/sensors`, { method: 'POST', body }),
   uninstallSensor: (deviceId, sensorId) =>
     request(`/devices/${deviceId}/sensors/${sensorId}`, { method: 'DELETE' }),
