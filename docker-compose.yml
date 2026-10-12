@@ -17,5 +17,31 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build: ./backend
+    container_name: cuaca-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cuaca}:${POSTGRES_PASSWORD:-cuaca}@db:5432/${POSTGRES_DB:-cuaca}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change_me}
+      PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: cuaca-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   cuaca_pgdata:
