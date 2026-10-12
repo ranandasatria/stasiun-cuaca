@@ -39,65 +39,74 @@ export default function OverviewPage() {
     return () => clearInterval(timer);
   }, [load, router]);
 
-  function logout() {
+  function signOut() {
     clearToken();
     router.push('/login');
   }
 
   return (
-    <main style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Stasiun Cuaca</h1>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ color: '#666', fontSize: 13 }}>
-            Last updated: {updatedAt ? formatWIB(updatedAt) : '-'}
-          </span>
-          <button onClick={load}>Refresh</button>
-          <Link href="/devices">Manage</Link>
-          <button onClick={logout}>Logout</button>
+    <main className="container">
+      <div className="topbar">
+        <span className="topbar-title">Stations</span>
+        <div className="topbar-actions">
+          <span className="muted small">{updatedAt ? `Updated ${formatWIB(updatedAt)}` : ''}</span>
+          <button className="btn btn-secondary" onClick={load}>
+            Refresh
+          </button>
+          <Link className="btn btn-secondary" href="/devices">
+            Manage
+          </Link>
+          <button className="btn btn-secondary" onClick={signOut}>
+            Sign out
+          </button>
         </div>
-      </header>
+      </div>
 
-      {loading && <p>Loading devices...</p>}
-      {error && <p style={{ color: 'crimson' }}>Error: {error}</p>}
-      {!loading && !error && devices.length === 0 && <p>No devices registered.</p>}
+      {loading && <p className="muted">Loading stations...</p>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16, marginTop: 16 }}>
-        {devices.map((d) => (
-          <Link key={d.id} href={`/stations/${d.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>{d.name}</strong>
-                <span
-                  style={{
-                    fontSize: 12,
-                    padding: '2px 8px',
-                    borderRadius: 10,
-                    background: d.online ? '#d7f5dd' : '#f8d7da',
-                    color: d.online ? '#1b6b2f' : '#842029',
-                  }}
-                >
+      {!loading && error && (
+        <div>
+          <div className="alert">Could not load stations. {error}</div>
+          <button className="btn btn-secondary" onClick={load}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && devices.length === 0 && (
+        <p className="muted">No stations yet. Run the seeder or register a device to get started.</p>
+      )}
+
+      {!loading && !error && devices.length > 0 && (
+        <div className="grid">
+          {devices.map((d) => (
+            <Link key={d.id} href={`/stations/${d.id}`} className="card">
+              <div className="card-head">
+                <span className="card-name">{d.name}</span>
+                <span className={`badge ${d.online ? 'badge-online' : ''}`}>
                   {d.online ? 'online' : 'offline'}
                 </span>
               </div>
-              <div style={{ color: '#666', fontSize: 13, margin: '4px 0 12px' }}>{d.location?.name || '-'}</div>
-              <div style={{ display: 'flex', gap: 24 }}>
+              <div className="muted small">{d.location?.name || 'No location'}</div>
+
+              <div className="metric-row">
                 <div>
-                  <div style={{ fontSize: 22 }}>{d.temp_air ?? '-'}°C</div>
-                  <div style={{ fontSize: 12, color: '#666' }}>temp</div>
+                  <div className="metric">{d.temp_air ?? '–'}°</div>
+                  <div className="metric-label">Temperature</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 22 }}>{d.humidity ?? '-'}%</div>
-                  <div style={{ fontSize: 12, color: '#666' }}>humidity</div>
+                  <div className="metric">{d.humidity ?? '–'}%</div>
+                  <div className="metric-label">Humidity</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: '#888', marginTop: 12 }}>
-                {d.lastSeenAt ? `Updated ${formatWIB(d.lastSeenAt)}` : 'Never reported'}
+
+              <div className="muted small" style={{ marginTop: 14 }}>
+                {d.lastSeenAt ? `Updated ${formatWIB(d.lastSeenAt)}` : 'No data yet'}
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

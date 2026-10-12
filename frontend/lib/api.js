@@ -45,6 +45,9 @@ export const api = {
   login: (username, password) =>
     request('/auth/login', { method: 'POST', body: { username, password }, auth: false }),
 
+  register: (username, password) =>
+    request('/auth/register', { method: 'POST', body: { username, password }, auth: false }),
+
   overview: () => request('/dashboard/overview'),
   devices: (params = {}) => request(`/devices?${new URLSearchParams(params)}`),
   device: (id) => request(`/devices/${id}`),
