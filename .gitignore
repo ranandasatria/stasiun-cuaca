@@ -5,3 +5,5 @@ dist/
 .env.local
 *.log
 coverage/
+simulator/devices.dev.json
+backend/src/generated/
